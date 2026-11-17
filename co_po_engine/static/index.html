@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Señal Viva — CO-PO Engine</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Señal Viva</h1>
+      <p class="sub">Motor de orden dinámico + continuidad (sympy real) + figura reactiva. Todo corre localmente, sin internet.</p>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-view="panel">Panel</button>
+      <button class="tab" data-view="figura">Figura</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+        <h2>Entrada de valores</h2>
+        <p class="hint">n valores → orden n. L = magnitud promedio.</p>
+        <div class="vals" id="vals"></div>
+        <button class="addbtn" id="addVal">+ agregar valor</button>
+        <div class="readout">
+          <div class="ro"><div class="label">orden n</div><div class="val" id="roN">—</div></div>
+          <div class="ro"><div class="label">L</div><div class="val" id="roL">—</div></div>
+          <div class="ro"><div class="label">L^n</div><div class="val" id="roPow">—</div></div>
+          <div class="ro"><div class="label">ⁿ√L</div><div class="val" id="roRoot">—</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Continuidad</h2>
+        <p class="hint">Usa 'x'. Admite decimales. Este resultado alimenta la Figura.</p>
+        <div class="modetoggle">
+          <button class="modebtn active" data-mode="symbolic">simbólico</button>
+          <button class="modebtn" data-mode="numeric">numérico (ε)</button>
+        </div>
+        <div class="row3">
+          <div><label>f izq</label><input id="fLeft" value="x**2"></div>
+          <div><label>f centro</label><input id="fCenter" value="x**2"></div>
+          <div><label>f der</label><input id="fRight" value="x**2"></div>
+        </div>
+        <div class="ptrow">
+          <label>punto x →</label>
+          <input id="point" value="2">
+        </div>
+        <button class="runbtn" id="evalBtn">evaluar y actualizar figura</button>
+        <div class="result" id="result" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div id="viewPanel">
+      <div class="card dash-grid">
+        <div>
+          <h2>Curva L^n vs L</h2>
+          <p class="hint">Cómo crece la operación de orden n según L.</p>
+          <canvas class="chart" id="curve" width="480" height="260"></canvas>
+        </div>
+        <div>
+          <h2>Atenuación — d(t) = L·tⁿ</h2>
+          <p class="hint">Análogo de pérdida de potencia con la distancia.</p>
+          <canvas class="chart" id="fall" width="480" height="260"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Lectura rápida</h2>
+        <p class="hint" id="readingText" style="margin-bottom:0;">—</p>
+      </div>
+    </div>
+
+    <div id="viewFigura" class="card" style="display:none;">
+      <h2>Figura reactiva</h2>
+      <p class="hint">Misma métrica, dos lecturas: una abstracta (malla) y otra intuitiva (criatura). Evalúa continuidad en el panel izquierdo para verla reaccionar con precisión real; sin eso, usa la dispersión de tus valores como respaldo.</p>
+      <div class="fig-grid">
+        <div class="figbox"><span class="figlabel">abstracta</span><canvas id="abstractBox"></canvas></div>
+        <div class="figbox"><span class="figlabel">simpática</span><canvas id="cuteBox"></canvas></div>
+      </div>
+      <div class="legend">
+        <span><b>verde</b> = continuo / estable</span>
+        <span><b>naranja</b> = discontinuidad / inestable</span>
+        <span><b>desenfoque</b> = tamaño del salto (interferencia de señal)</span>
+        <span><b>sonrisa ↔ mueca</b> = señal limpia ↔ degradada</span>
+        <span><b>tamaño</b> = L · <b>vértices</b> = orden n</span>
+        <span id="sourceTag"><b>fuente</b> = —</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>CO-PO Engine / Señal Viva — backend: Python stdlib + sympy. Frontend: HTML/CSS/JS plano, sin librerías ni CDN. Ver WORKFLOW.md para el flujo completo.</footer>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>

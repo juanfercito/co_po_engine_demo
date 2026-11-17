@@ -1,0 +1,13 @@
+env/
+.env
+*/pycache/*
+.ds_store
+.vscode/
+.db
+.idea/
+.claude
+/coverage
+.sqlite
+venv/
+/venv/*
+_pycache_/*
