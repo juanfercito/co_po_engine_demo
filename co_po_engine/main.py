@@ -14,6 +14,13 @@ Endpoints:
   POST /api/visual         -> {values, left, center, right, point, mode}
                                -> combina los tres motores y devuelve
                                   el estado visual listo para dibujar
+  POST /api/solve_parameter -> {param_mode, param_name, point, left, right}
+                                o {param_mode:"removable", param_name, point, expr}
+                               -> resuelve k/m/a/c (parametric_engine)
+  POST /api/chart           -> {left, center, right, point, mode}
+                               -> curva cartesiana (ramas + verificación
+                                  de continuity_engine) para graficar
+                                  tipo Figura 16 de la guía
 """
 
 import json
@@ -21,7 +28,7 @@ import mimetypes
 import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from engines import continuity_engine, polynomial_engine, visual_engine
+from engines import continuity_engine, parametric_engine, polynomial_engine, visual_engine
 
 HOST = "127.0.0.1"
 PORT = 8000
@@ -117,6 +124,34 @@ class Handler(BaseHTTPRequestHandler):
                     order_result, continuity_result=continuity_result, raw_values=values
                 )
                 self._send_json(state)
+
+            elif self.path == "/api/solve_parameter":
+                param_mode = data.get("param_mode", "jump")
+                result = parametric_engine.solve_parameter(
+                    param_mode,
+                    float(data["point"]),
+                    data["param_name"],
+                    left_expr=data.get("left"),
+                    right_expr=data.get("right"),
+                    expr=data.get("expr"),
+                )
+                self._send_json(result)
+
+            elif self.path == "/api/chart":
+                point = float(data["point"])
+                # continuity_engine es la única fuente de verdad para los
+                # valores en el punto crítico (ya resuelve zoo/infinito
+                # correctamente) — este endpoint solo le añade la curva
+                # muestreada por visual_engine para poder dibujarla.
+                cont = continuity_engine.analyze_continuity(
+                    data["left"], data["center"], data["right"],
+                    point, mode=data.get("mode", "symbolic"),
+                )
+                curve = visual_engine.cartesian_series(
+                    data["left"], data["right"], point,
+                    x_min=data.get("x_min"), x_max=data.get("x_max"),
+                )
+                self._send_json({**curve, "continuity": cont})
 
             else:
                 self._send_json({"error": "ruta no encontrada"}, status=404)

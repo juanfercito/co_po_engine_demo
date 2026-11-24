@@ -56,9 +56,10 @@ el wifi del salón falle.
 ```
 co_po_engine/
 ├── main.py                        # servidor HTTP (solo stdlib) + rutas /api/*
-├── requirements.txt                 # solo sympy
+├── requirements.txt                 # solo sympy y mpmath
 ├── engines/
 │   ├── continuity_engine.py        # continuidad: modo simbólico (sympy) y numérico (ε)
+│   ├── parametric_engine.py        # orden dinámico (filtro y atenuación de variables, parámetros y saltos)
 │   ├── polynomial_engine.py        # orden dinámico (L^n, raíz n-ésima, atenuación)
 │   └── visual_engine.py            # NO vuelve a calcular nada — reduce los resultados
 │                                     # de los dos motores anteriores a un estado visual barato
@@ -70,12 +71,17 @@ co_po_engine/
 
 ## Endpoints
 
-| Método | Ruta              | Body                                                   |
-|--------|-------------------|----------------------------------------------------------|
-| POST   | `/api/continuity` | `{left, center, right, point, mode}`                        |
-| POST   | `/api/order`      | `{values}`                                                   |
-| POST   | `/api/polynomial` | `{values, point, mode}`                                      |
-| POST   | `/api/visual`     | `{values, left, center, right, point, mode}` (combina todo) |
+| Método | Ruta                | Body                                                   |
+|--------|---------------------|----------------------------------------------------------|
+| POST   | `/api/continuity`   | `{left, center, right, point, mode}`                        |
+| POST   | `/api/order`        | `{values}`                                                   |
+| POST   | `/api/polynomial`   | `{values, point, mode}`                                      |
+| POST   | `/api/visual`       | `{values, left, center, right, point, mode}` (combina todo) |
+| POST   |`api/solve_parameter`| `{param_mode, param_name, point, left, right}`              |
+|        |                     | `{param_mode:"removable", param_name, point, expr}` resuelve k/m/a/c (parametric_engine) |
+| POST   | `/api/chart`        | `{left, center, right, point, mode}` |
+|        |                     | `curva cartesiana (ramas + verificación`  |
+|        |                     | `de continuity_engine)` para graficar comportamientos |
 
 `mode` es `"symbolic"` o `"numeric"`. Para el detalle de qué hace cada
 motor y por qué el resultado se ve como se ve, lee **WORKFLOW.md**.

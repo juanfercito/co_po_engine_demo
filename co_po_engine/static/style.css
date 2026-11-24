@@ -31,6 +31,12 @@ h1{font-family:var(--head);font-size:1.4rem;font-weight:700;margin:0 0 4px;lette
 .chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.95rem;padding:0 3px;}
 .addbtn{font-family:var(--mono);font-size:.76rem;background:var(--panel2);border:1px dashed var(--line);color:var(--muted);padding:5px 10px;border-radius:5px;cursor:pointer;width:100%;}
 .addbtn:hover{color:var(--accent);border-color:var(--accent);}
+.examplebtns{display:flex;flex-wrap:wrap;gap:7px;}
+.examplebtn{font-family:var(--mono);font-size:.72rem;background:var(--panel2);border:1px solid var(--line);color:var(--muted);padding:6px 10px;border-radius:5px;cursor:pointer;text-align:left;flex:1 1 auto;}
+.examplebtn:hover{color:var(--accent);border-color:var(--accent);}
+.examplebtn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.chartcaption{color:var(--muted);font-size:.78rem;line-height:1.55;margin:8px 0 0;padding-top:8px;border-top:1px solid var(--line);}
+.chartcaption b{color:var(--text);}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
 .row3 label{font-size:.68rem;color:var(--muted);display:block;margin-bottom:4px;}
 .row3 input, .ptrow input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:6px 7px;border-radius:5px;}

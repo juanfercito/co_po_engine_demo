@@ -35,6 +35,13 @@
       </div>
 
       <div class="card">
+        <h2>Ejemplos guiados (telecomunicaciones)</h2>
+        <p class="hint">Casos del contexto de redes y análisis de datos — útiles para reconocer cada tipo de discontinuidad antes de resolver tu propio ejercicio. Al elegir uno, se llenan las cajas correspondientes y se actualiza la gráfica automáticamente.</p>
+        <div class="examplebtns" id="exampleBtns"></div>
+        <p class="hint" id="exampleContext" style="display:none;margin-top:10px;margin-bottom:0;"></p>
+      </div>
+
+      <div class="card">
         <h2>Continuidad</h2>
         <p class="hint">Usa 'x'. Admite decimales. Este resultado alimenta la Figura.</p>
         <div class="modetoggle">
@@ -52,6 +59,36 @@
         </div>
         <button class="runbtn" id="evalBtn">evaluar y actualizar figura</button>
         <div class="result" id="result" style="display:none;"></div>
+      </div>
+
+      <div class="card">
+        <h2>¿Función con parámetro desconocido?</h2>
+        <p class="hint">Para ejercicios tipo "halle k para que f sea continua en x=c". Resuelve el parámetro y llena las cajas de arriba con la función ya resuelta — no hace falta escribir la incógnita en la caja de Continuidad.</p>
+        <div class="modetoggle">
+          <button class="modebtn active" data-pmode="jump">salto (dos ramas)</button>
+          <button class="modebtn" data-pmode="removable">removible (una rama)</button>
+        </div>
+
+        <div id="paramJump">
+          <div class="row3" style="grid-template-columns:1fr 1fr;">
+            <div><label>f izquierda (x &lt; punto)</label><input id="pLeft" value="x**2-4"></div>
+            <div><label>f derecha (x ≥ punto, usa el parámetro)</label><input id="pRight" value="k*x+1"></div>
+          </div>
+        </div>
+        <div id="paramRemovable" style="display:none;">
+          <div class="row3" style="grid-template-columns:1fr;">
+            <div><label>f(x) válida para x ≠ punto</label><input id="pExpr" value="(x**2-9)/(x-3)"></div>
+          </div>
+        </div>
+
+        <div class="ptrow">
+          <label>parámetro</label>
+          <input id="pName" value="k" style="width:50px;">
+          <label>en x →</label>
+          <input id="pPoint" value="2">
+        </div>
+        <button class="runbtn" id="solveParamBtn">resolver parámetro</button>
+        <div class="result" id="paramResult" style="display:none;"></div>
       </div>
     </div>
 
@@ -89,6 +126,15 @@
         <span><b>tamaño</b> = L · <b>vértices</b> = orden n</span>
         <span id="sourceTag"><b>fuente</b> = —</span>
       </div>
+
+      <h2 style="margin-top:18px;">Gráfica cartesiana</h2>
+      <p class="hint">La función real, con el salto, la discontinuidad removible o la asíntota marcados — igual que la Figura 16 de la guía.</p>
+      <div class="figbox" style="height:340px;"><canvas id="cartBox"></canvas></div>
+      <p class="chartcaption" id="chartCaption">Evalúa una función (o elige un ejemplo guiado) para ver la explicación de esta gráfica.</p>
+
+      <h2 style="margin-top:18px;">Resultados</h2>
+      <p class="hint">Generados a partir de los mismos números ya verificados arriba — no se recalcula nada aquí.</p>
+      <pre class="result ok" id="resultsText" style="display:block;white-space:pre-wrap;">Evalúa continuidad para generar los resultados.</pre>
     </div>
   </div>
 

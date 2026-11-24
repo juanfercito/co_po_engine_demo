@@ -15,10 +15,33 @@ proyecto CO-API.
 
 import re
 
-from sympy import Limit, Pow, Symbol, fraction, oo, sympify, together, zoo
+from sympy import Limit, Pow, Symbol, fraction, nsimplify, oo, sympify, together, zoo
 from sympy.core.sympify import SympifyError
 
 X = Symbol("x")
+
+
+def _exact_point(point):
+    """Convierte el punto de entrada en un número EXACTO de sympy
+    (entero o racional) en vez de dejarlo como un float de Python.
+
+    Por qué importa: si se sustituye x=2.0 (float de Python) en una
+    expresión simbólica, sympy calcula esa sustitución en punto
+    flotante en lugar de aritmética exacta. Dos ramas que matemáticamente
+    dan el mismo valor (por ejemplo 8/3) pueden terminar representadas
+    por bits ligeramente distintos — y la comparación de continuidad
+    (que exige igualdad exacta en modo simbólico) las marca como
+    distintas por un error invisible en el último dígito. Es el mismo
+    tipo de deuda técnica silenciosa que el bug de 'zoo' documentado
+    más abajo: no truena, simplemente da una respuesta sutilmente
+    incorrecta. Ver WORKFLOW.md, sección 6.
+    """
+    if isinstance(point, str):
+        return sympify(point, rational=True)
+    if isinstance(point, float):
+        return nsimplify(point, rational=True)
+    return sympify(point)
+
 
 # ---------------------------------------------------------------------
 # Las 3 leyes de dominio que el engine.py original NO validaba (ver
@@ -30,14 +53,21 @@ X = Symbol("x")
 # ---------------------------------------------------------------------
 
 
-def _domain_warnings(expr, point):
+def _domain_warnings(expr, point, display_point=None):
     """Detecta, para una expresión y un punto dados, las tres
     restricciones de dominio que más fácil se pasan por alto:
       1) división por cero
       2) raíz de índice par de un número negativo (no real)
       3) el punto evalúa directamente a infinito (oo/-oo/zoo)
     Devuelve una lista de strings legibles; vacía si no hay problema.
+
+    `point` debe ser el valor EXACTO (ver _exact_point) para que las
+    comparaciones (denom == 0, etc.) no fallen por redondeo de punto
+    flotante; `display_point` es el valor "bonito" que se muestra en el
+    mensaje (por defecto, el mismo `point`).
     """
+    if display_point is None:
+        display_point = point
     warnings = []
 
     # 1) división por cero: separa numerador/denominador y evalúa el denominador en el punto
@@ -47,7 +77,7 @@ def _domain_warnings(expr, point):
             dval = denom.subs(X, point)
             if dval == 0:
                 warnings.append(
-                    f"División por cero: el denominador se anula en x={point}. "
+                    f"División por cero: el denominador se anula en x={display_point}. "
                     "La expresión no está definida ahí (dominio restringido)."
                 )
     except Exception:
@@ -61,7 +91,7 @@ def _domain_warnings(expr, point):
                 bval = base.subs(X, point)
                 if getattr(bval, "is_real", True) and bval.is_real and bval < 0:
                     warnings.append(
-                        f"Raíz de índice par de un número negativo en x={point} "
+                        f"Raíz de índice par de un número negativo en x={display_point} "
                         f"(base = {bval}): el resultado no es real en ese punto."
                     )
     except Exception:
@@ -72,7 +102,7 @@ def _domain_warnings(expr, point):
         val = expr.subs(X, point)
         if val in (oo, -oo, zoo):
             warnings.append(
-                f"La expresión evalúa a infinito en x={point} (valor: {val}). "
+                f"La expresión evalúa a infinito en x={display_point} (valor: {val}). "
                 "Revisar si hay una asíntota o una división por cero oculta."
             )
     except Exception:
@@ -134,10 +164,13 @@ def analyze_continuity_symbolic(function_left, function_center, function_right, 
     """Límite exacto vía sympy (Limit().doit()) + continuidad de la derivada."""
     f_left, f_center, f_right = _parse_three(function_left, function_center, function_right)
 
+    display_point = point  # el valor original, solo para mostrarlo en la salida
+    point = _exact_point(point)  # el valor exacto, usado en todas las sustituciones
+
     domain_warnings = (
-        _domain_warnings(f_left, point)
-        + _domain_warnings(f_center, point)
-        + _domain_warnings(f_right, point)
+        _domain_warnings(f_left, point, display_point)
+        + _domain_warnings(f_center, point, display_point)
+        + _domain_warnings(f_right, point, display_point)
     )
     # sin duplicados, conservando el orden
     domain_warnings = list(dict.fromkeys(domain_warnings))
@@ -149,7 +182,7 @@ def analyze_continuity_symbolic(function_left, function_center, function_right, 
     if lim_left in (oo, -oo, zoo) or lim_right in (oo, -oo, zoo):
         return {
             "mode": "symbolic",
-            "x": point,
+            "x": display_point,
             "f_x_left": _to_output_value(lim_left),
             "f_x": _to_output_value(val_center),
             "f_x_right": _to_output_value(lim_right),
@@ -169,9 +202,9 @@ def analyze_continuity_symbolic(function_left, function_center, function_right, 
     is_continuous_fn = left_val == center_val == right_val
 
     detail = [
-        f"Left limit at x→{point}⁻: {lim_left}",
-        f"Value at point f({point}) = {val_center}",
-        f"Right limit at x→{point}⁺: {lim_right}",
+        f"Left limit at x→{display_point}⁻: {lim_left}",
+        f"Value at point f({display_point}) = {val_center}",
+        f"Right limit at x→{display_point}⁺: {lim_right}",
     ]
 
     try:
@@ -179,8 +212,8 @@ def analyze_continuity_symbolic(function_left, function_center, function_right, 
         df_right = f_right.diff(X)
         lim_df_left = Limit(df_left, X, point, dir="-").doit()
         lim_df_right = Limit(df_right, X, point, dir="+").doit()
-        detail.append(f"f'_left(x) = {df_left}  →  limit at x→{point}⁻: {lim_df_left}")
-        detail.append(f"f'_right(x) = {df_right}  →  limit at x→{point}⁺: {lim_df_right}")
+        detail.append(f"f'_left(x) = {df_left}  →  limit at x→{display_point}⁻: {lim_df_left}")
+        detail.append(f"f'_right(x) = {df_right}  →  limit at x→{display_point}⁺: {lim_df_right}")
         deriv_cont = lim_df_left == lim_df_right
         detail.append("First derivative continuous at the point" if deriv_cont else "First derivative discontinuous at the point")
     except (SympifyError, AttributeError, TypeError) as err:
@@ -190,7 +223,7 @@ def analyze_continuity_symbolic(function_left, function_center, function_right, 
 
     return {
         "mode": "symbolic",
-        "x": point,
+        "x": display_point,
         "f_x_left": left_val,
         "f_x": center_val,
         "f_x_right": right_val,
